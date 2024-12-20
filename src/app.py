@@ -1,8 +1,6 @@
 import streamlit as st
 import os
-import tempfile
-
-from src.rag_pipeline import RAGPipeline
+from rag_pipeline import RAGPipeline
 
 class MemoryForgeApp:
     def __init__(self):
@@ -37,6 +35,15 @@ class MemoryForgeApp:
             # Rebuild index after upload
             self.rag_pipeline.load_documents()
             self.rag_pipeline.create_index()
+
+    def show_context(self, context_chunks):
+        """
+        Display context chunks in an expander
+        """
+        with st.expander("View Source Context"):
+            for i, chunk in enumerate(context_chunks, 1):
+                st.markdown(f"**Source {i}:**")
+                st.write(chunk)
     
     def chat_interface(self):
         """
@@ -44,7 +51,7 @@ class MemoryForgeApp:
         """
         st.title("🧠 MemoryForge: AI Knowledge Assistant")
         
-        # Chat history
+        # Initialize chat history
         if 'chat_history' not in st.session_state:
             st.session_state.chat_history = []
         
@@ -58,22 +65,61 @@ class MemoryForgeApp:
             # Store in chat history
             st.session_state.chat_history.append({
                 'query': user_query,
-                'response': result['response']
+                'response': result['response'],
+                'context': result.get('context', [])
             })
         
-        # Display chat history
+        # Display chat history with context
         for chat in st.session_state.chat_history:
             st.chat_message("human").write(chat['query'])
-            st.chat_message("ai").write(chat['response'])
+            with st.chat_message("ai"):
+                st.write(chat['response'])
+                if chat.get('context'):
+                    self.show_context(chat['context'])
+    
+    def settings_section(self):
+        """
+        Streamlit section for app settings
+        """
+        st.sidebar.header("⚙️ Settings")
+        with st.sidebar.expander("App Settings"):
+            if st.button("Clear Chat History"):
+                st.session_state.chat_history = []
+                st.success("Chat history cleared!")
+            
+            if st.button("Clear Document Cache"):
+                document_dir = 'data/documents'
+                if os.path.exists(document_dir):
+                    for file in os.listdir(document_dir):
+                        os.remove(os.path.join(document_dir, file))
+                st.success("Document cache cleared!")
     
     def run(self):
         """
         Run Streamlit application
         """
+        # Add app description
+        st.sidebar.markdown(""" 
+        # About
+        MemoryForge is an AI-powered knowledge assistant that helps you:
+        - 📚 Process and understand documents
+        - 🤖 Generate intelligent responses
+        """)
+        
+        # Run all sections
         self.document_upload_section()
+        self.settings_section()
         self.chat_interface()
 
 def main():
+    # Set Streamlit page config
+    st.set_page_config(
+        page_title="MemoryForge",
+        page_icon="🧠",
+        layout="wide"
+    )
+    
+    # Initialize and run app
     app = MemoryForgeApp()
     app.run()
 
