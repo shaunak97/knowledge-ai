@@ -1,0 +1,12 @@
+streamlit
+transformers
+torch
+sentence-transformers
+faiss-cpu
+langchain
+chromadb
+pypdf
+python-docx
+numpy
+pandas
+datasets
