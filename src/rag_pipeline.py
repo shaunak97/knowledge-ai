@@ -3,9 +3,9 @@ import faiss
 import numpy as np
 from typing import List, Dict, Any
 
-from src.document_loader import DocumentLoader
-from src.embedding_service import EmbeddingService
-from src.model_interface import MemoryForgeModel
+from document_loader import DocumentLoader
+from embedding_service import EmbeddingService
+from model_interface import MemoryForgeModel
 
 class RAGPipeline:
     def __init__(
